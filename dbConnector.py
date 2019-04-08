@@ -95,7 +95,7 @@ def check_customer_existence(customer_id):
         if len(records) > 0:
             return False
         else:
-            return
+            return True
     except mysql.connector.Error as error:
         print('Failed {}'.format(error))
 
@@ -104,30 +104,47 @@ def add_order():
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        add_value_string = get_orders_table_vals()
+        add_value_string = get_orders_table_vals('orders')
         sql_query = f'INSERT INTO orders VALUES {add_value_string}'
         cursor.execute(sql_query)
-        connection.commit()
+        # connection.commit()
+        add_value_string = get_orders_table_vals('order_details')
+        sql_query = f'INSERT INTO order_details VALUES {add_value_string}'
+        cursor.execute(sql_query)
     except mysql.connector.Error as error:
         print('Failed {}'.format(error))
 
 
-def get_orders_table_vals():
+def get_orders_table_vals(function_called):
     order_ID = get_highest_id('orders', 'OrderID') + 1
-    customer_ID = get_highest_id('orders', 'CustomerID') + 1
+    customer_ID = input('Please enter the customerID\n>')
+    customer_ID = '"' + customer_ID + '"'
+    does_not_exist = check_customer_existence(customer_ID)
+    if does_not_exist:
+        print('That customer does not exist')
+        return
     employee_ID = get_highest_id('orders', 'EmployeeID') + 1
-    order_date = input('Please enter the order date. Like 1996-07-04')
-    required_date = input('Please enter the required date')
-    shipped_date = input('Please enter the shipped date')
-    ship_via = input('Please enter the shipper company code')
-    freight = input('Please enter the frieght')
-    ship_name = input('Please enter the shipper name')
-    ship_address = input('Please enter the shipper address')
-    ship_city = input('Please enter the shipper city')
-    ship_region = input('Please enter the shipper region')
-    ship_postal_code = input('Please enter the shipper postalcode')
-    ship_country = input('Please enter the shipper country')
-    return 0
+    order_date = input('Please enter the order date. Like 1998-05-05 00:00:00\n>')
+    print(order_date)
+    required_date = input('Please enter the required date. Like 1998-05-05 00:00:00\n>')
+    shipped_date = input('Please enter the shipped date. Like 1998-05-05 00:00:00\n>')
+    ship_via = input('Please enter the shipper company code\n>')
+    freight = input('Please enter the frieght\n>')
+    ship_name = input('Please enter the shipper name\n>')
+    ship_address = input('Please enter the shipper address\n>')
+    ship_city = input('Please enter the shipper city\n>')
+    ship_region = input('Please enter the shipper region\n>')
+    ship_postal_code = input('Please enter the shipper postalcode\n>')
+    ship_country = input('Please enter the shipper country\n>')
+    order_details_id = get_highest_id('order_details', 'ID') + 1
+    product_id = get_highest_id('order_details', 'ProductID') + 1
+    unit_price = input('Please enter the unit price\n>')
+    quantity = input('Please enter the quantity\n>')
+    discount = input('Please enter the discount\n>')
+    if function_called == 'orders':
+        return f'({order_ID}, {customer_ID}, {employee_ID}, {order_date}, {required_date}, {shipped_date}, {ship_via}, {freight}, {str(ship_name)}, {str(ship_address)}, {str(ship_city)}, {str(ship_region)}, {ship_postal_code}, {ship_country})'
+    elif function_called == 'order_details':
+        return f'({order_details_id}, {order_ID}, {product_id}, {unit_price}, {quantity}, {discount})'
 
 
 def get_highest_id(table, id_name):
@@ -137,6 +154,33 @@ def get_highest_id(table, id_name):
         sql_query = f'SELECT MAX(%s) FROM %s' % (id_name, table)
         cursor.execute(sql_query)
         records = cursor.fetchall()
-        return records[0][0]
+        return int(records[0][0])
+    except mysql.connector.Error as error:
+        print('Failed {}'.format(error))
+
+
+def remove_order():
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        order_id_to_remove = input('Please enter the orderID of the order you \nwould like to remove\n>')
+        sql_query = f'DELETE FROM order_details WHERE OrderID = {order_id_to_remove}'
+        cursor.execute(sql_query)
+        sql_query = f'DELETE FROM orders WHERE OrderID = {order_id_to_remove}'
+        cursor.execute(sql_query)
+        connection.commit()
+    except mysql.connector.Error as error:
+        print('Failed {}'.format(error))
+
+
+def print_pending_orders():
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        sql_query = 'SELECT * FROM products WHERE UnitsOnOrder > 0'
+        cursor.execute(sql_query)
+        records = cursor.fetchall()
+        for row in records:
+            print(row)
     except mysql.connector.Error as error:
         print('Failed {}'.format(error))
