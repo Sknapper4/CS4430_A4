@@ -3,7 +3,7 @@ from dbConnector import add_customer
 
 def menu():
 	print(
-		'\n 1. Add a customer\n',
+		' 1. Add a customer\n',
 		'2. Add an order\n',
 		'3. Remove an order\n',
 		'4. Ship an order\n',
