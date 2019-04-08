@@ -1,5 +1,5 @@
+from dbConnector import add_customer, get_highest_id
 
-from dbConnector import add_customer
 
 def menu():
 	print(
@@ -40,4 +40,5 @@ def menu():
 
 
 if __name__ == '__main__':
+	get_highest_id('orders', 'OrderID')
 	menu()
