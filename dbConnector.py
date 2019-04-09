@@ -224,10 +224,37 @@ def check_if_order_id_exists(order_id):
         print('Failed {}'.format(error))
 
 
-# def restock():
-#     try:
-#         connection = get_db_connection()
-#         cursor = connection.cursor()
-#
-#     except mysql.connector.Error as error:
-#         print('Failed {}'.format(error))
+def restock():
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        product_id = input('Please enter the ProductId of the product you want to restock\n>')
+        product_exists = check_products_existence(product_id)
+        if not product_exists:
+            print('That ProductID does not exist')
+            return
+        sql_query = f'SELECT ReorderLevel FROM products WHERE Discontinued <> "y" AND ProductID = %s' % product_id
+        cursor.execute(sql_query)
+        records = cursor.fetchall()
+        reorder_quantity = records[0][0]
+        sql_query = f'UPDATE products SET UnitsInStock = UnitsInStock + %f WHERE ProductID = %s' % (reorder_quantity, product_id)
+        cursor.execute(sql_query)
+        connection.commit()
+    except mysql.connector.Error as error:
+        print('Failed {}'.format(error))
+
+
+def check_products_existence(product_id):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        product_id = '"' + product_id + '"'
+        sql_query = f'SELECT ProductID FROM products WHERE ProductId = %s' % product_id
+        cursor.execute(sql_query)
+        records = cursor.fetchall()
+        if len(records) > 0:
+            return True
+        else:
+            return False
+    except mysql.connector.Error as error:
+        print('Failed {}'.format(error))

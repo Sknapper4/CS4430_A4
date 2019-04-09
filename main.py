@@ -1,4 +1,4 @@
-from dbConnector import add_customer, get_highest_id, add_order, remove_order, print_pending_orders, ship_order
+from dbConnector import add_customer, get_highest_id, add_order, remove_order, print_pending_orders, ship_order, restock
 
 
 def menu():
@@ -34,6 +34,7 @@ def menu():
 		menu()
 		
 	elif menu_choice == '6':
+		restock()
 		menu()
 		
 	elif menu_choice == '7':
