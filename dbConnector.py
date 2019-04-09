@@ -177,10 +177,57 @@ def print_pending_orders():
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
-        sql_query = 'SELECT * FROM products WHERE UnitsOnOrder > 0'
+        sql_query = 'SELECT * FROM customers, orders WHERE customers.CustomerID IN (SELECT CustomerID FROM orders WHERE ShippedDate is NULL)'
         cursor.execute(sql_query)
         records = cursor.fetchall()
         for row in records:
             print(row)
     except mysql.connector.Error as error:
         print('Failed {}'.format(error))
+
+
+def ship_order():
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        order_to_ship = input('Enter the OrderID of the order you want to ship\n>')
+        does_order_exist = check_if_order_id_exists(order_to_ship)
+        if not does_order_exist:
+            print('OrderID does not exist')
+            return
+        sql_query = f'SELECT Quantity, ProductID FROM order_details WHERE OrderID = %s' % order_to_ship
+        cursor.execute(sql_query)
+        records = cursor.fetchall()
+        print(records)
+        quantity = records[0][0]
+        product_id = records[0][1]
+        sql_query = f'UPDATE products SET UnitsInStock = UnitsInStock + %f WHERE ProductID = %s' % (quantity, product_id)
+        cursor.execute(sql_query)
+        connection.commit()
+    except mysql.connector.Error as error:
+        print('Failed {}'.format(error))
+
+
+def check_if_order_id_exists(order_id):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+        order_id = '"' + order_id + '"'
+        sql_query = f'SELECT OrderID FROM orders WHERE OrderID = %s' % order_id
+        cursor.execute(sql_query)
+        records = cursor.fetchall()
+        if len(records) > 0:
+            return True
+        else:
+            return False
+    except mysql.connector.Error as error:
+        print('Failed {}'.format(error))
+
+
+# def restock():
+#     try:
+#         connection = get_db_connection()
+#         cursor = connection.cursor()
+#
+#     except mysql.connector.Error as error:
+#         print('Failed {}'.format(error))
